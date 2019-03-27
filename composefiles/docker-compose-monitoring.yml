@@ -159,37 +159,57 @@ services:
     #             traefik.port: "3030"
     #             traefik.frontend.rule: "Host:elastalert.metabrokr.us"
     #             traefik.docker.network: "proxy"           
-
     grafana:
-        image: grafana/grafana
-        # ports:
-        #     - "3000:3000"
-        networks:
-            - monitoring
-            - logging
-            - proxy
+        image: grafana/grafana:4.5.2
         volumes:
             - grafana_data:/var/lib/grafana
-        command: -e "GF_SERVER_ROOT_URL=http://grafana.local.com GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090 ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200"
-        labels:
-            com.docker.stack.namespace: "monitoring"
-            com.docker.service.name: "grafana"
+        networks:
+            - proxy
+            - monitor
+        command: -e "GF_SERVER_ROOT_URL=https://grafana.metabrokr.us GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090 ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200"
         deploy:
-            mode: replicated
-            replicas: 1
-            update_config:
-                parallelism: 1
-                delay: 60s
-            restart_policy:
-                condition: on-failure
-                max_attempts: 5
+            placement:
+                constraints:
+                #- node.labels.grafana == true
+                - node.role == manager
             labels:
+                traefik.port: 3000
+                traefik.enable: "true"
+                traefik.docker.network: proxy
+                traefik.frontend.rule: Host:grafana.metabrokr.us
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "grafana"
-                traefik.enable: "true"
-                traefik.port: "3000"
-                traefik.frontend.rule: "Host:grafana.metabrokr.us"
-                traefik.docker.network: "proxy" 
+
+    # grafana_old:
+    #     image: grafana/grafana
+    #     # ports:
+    #     #     - "3000:3000"
+    #     networks:
+    #         - monitoring
+    #         - logging
+    #         - proxy
+    #     volumes:
+    #         - grafana_data:/var/lib/grafana
+    #     command: -e "GF_SERVER_ROOT_URL=http://grafana.local.com GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090 ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200"
+    #     labels:
+    #         com.docker.stack.namespace: "monitoring"
+    #         com.docker.service.name: "grafana"
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 1
+    #         update_config:
+    #             parallelism: 1
+    #             delay: 60s
+    #         restart_policy:
+    #             condition: on-failure
+    #             max_attempts: 5
+    #         labels:
+    #             com.docker.stack.namespace: "monitoring"
+    #             com.docker.service.name: "grafana"
+    #             traefik.enable: "true"
+    #             traefik.port: "3000"
+    #             traefik.frontend.rule: "Host:grafana.metabrokr.us"
+    #             traefik.docker.network: "proxy" 
 
     # prom2teams:
     #     image: robinong79/prom2teams:dev
