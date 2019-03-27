@@ -9,9 +9,9 @@ services:
         networks:
             - monitoring
         volumes:
-            - ../dockerdata/prometheus/data:/prometheus
-            - ../dockerdata/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-            - ../dockerdata/prometheus/rules:/etc/prometheus-rules
+            - prometheus_data:/prometheus
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml
+            - prometheus_rules:/etc/prometheus-rules
         command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles"
         labels:
             com.docker.stack.namespace: "monitoring"
@@ -92,73 +92,73 @@ services:
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "node-exporter"              
 
-    alertmanager:
-        image: prom/alertmanager
-        # ports:
-        #     - "9093:9093"
-        networks:
-            - monitoring
-        volumes:
-            - ../dockerdata/alertmanager/alertmanagerconfig.yml:/etc/alertmanager/alertmanagerconfig.yml
-            - ../dockerdata/alertmanager/data:/etc/alertmanager/data
-        command: [--config.file=/etc/alertmanager/alertmanagerconfig.yml,--storage.path=/etc/alertmanager/data]
-        labels:
-            com.docker.stack.namespace: "monitoring"
-            com.docker.service.name: "alertmanager"
-        deploy:
-            mode: replicated
-            replicas: 1
-            update_config:
-                parallelism: 1
-                delay: 60s
-            restart_policy:
-                condition: on-failure
-                max_attempts: 5
-            labels:
-                com.docker.stack.namespace: "monitoring"
-                com.docker.service.name: "alertmanager"
-                traefik.enable: "true"
-                traefik.port: "9093"
-                traefik.frontend.rule: "Host:alertmanager.metabrokr.us"
-                traefik.docker.network: "proxy" 
+    # alertmanager:
+    #     image: prom/alertmanager
+    #     # ports:
+    #     #     - "9093:9093"
+    #     networks:
+    #         - monitoring
+    #     volumes:
+    #         - ../dockerdata/alertmanager/alertmanagerconfig.yml:/etc/alertmanager/alertmanagerconfig.yml
+    #         - ../dockerdata/alertmanager/data:/etc/alertmanager/data
+    #     command: [--config.file=/etc/alertmanager/alertmanagerconfig.yml,--storage.path=/etc/alertmanager/data]
+    #     labels:
+    #         com.docker.stack.namespace: "monitoring"
+    #         com.docker.service.name: "alertmanager"
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 1
+    #         update_config:
+    #             parallelism: 1
+    #             delay: 60s
+    #         restart_policy:
+    #             condition: on-failure
+    #             max_attempts: 5
+    #         labels:
+    #             com.docker.stack.namespace: "monitoring"
+    #             com.docker.service.name: "alertmanager"
+    #             traefik.enable: "true"
+    #             traefik.port: "9093"
+    #             traefik.frontend.rule: "Host:alertmanager.metabrokr.us"
+    #             traefik.docker.network: "proxy" 
     
-    elastalert:
-        image: ivankrizsan/elastalert:0.1.8
-        # ports:
-        #     - "3030:3030"
-        networks:
-            - logging
-        environment:
-            - ELASTALERT_CONFIG=elastalertconfig.yaml
-            - CONFIG_DIR=/opt/config
-            - LOG_DIR=/opt/logs
-            - ELASTALERT_CONFIG=/opt/config/elastalertconfig.yaml
-            - ELASTICSEARCH_PORT=9200
-            - ELASTICSEARCH_HOST=elasticsearch
-            - ELASTALERT_SUPERVISOR_CONF=/opt/config/elastalert_supervisord.conf
-        volumes:
-            - ../dockerdata/elastalert/config:/opt/config
-            - ../dockerdata/elastalert/rules:/opt/rules
-            - ../dockerdata/elastalert/logs:/opt/logs
-        labels:
-            com.docker.stack.namespace: "monitoring"
-            com.docker.service.name: "elastalert"
-        deploy:
-            mode: replicated
-            replicas: 1
-            update_config:
-                parallelism: 1
-                delay: 60s
-            restart_policy:
-                condition: on-failure
-                max_attempts: 5
-            labels:
-                com.docker.stack.namespace: "monitoring"
-                com.docker.service.name: "elastalert"  
-                traefik.enable: "true"
-                traefik.port: "3030"
-                traefik.frontend.rule: "Host:elastalert.metabrokr.us"
-                traefik.docker.network: "proxy"           
+    # elastalert:
+    #     image: ivankrizsan/elastalert:0.1.8
+    #     # ports:
+    #     #     - "3030:3030"
+    #     networks:
+    #         - logging
+    #     environment:
+    #         - ELASTALERT_CONFIG=elastalertconfig.yaml
+    #         - CONFIG_DIR=/opt/config
+    #         - LOG_DIR=/opt/logs
+    #         - ELASTALERT_CONFIG=/opt/config/elastalertconfig.yaml
+    #         - ELASTICSEARCH_PORT=9200
+    #         - ELASTICSEARCH_HOST=elasticsearch
+    #         - ELASTALERT_SUPERVISOR_CONF=/opt/config/elastalert_supervisord.conf
+    #     volumes:
+    #         - ../dockerdata/elastalert/config:/opt/config
+    #         - ../dockerdata/elastalert/rules:/opt/rules
+    #         - ../dockerdata/elastalert/logs:/opt/logs
+    #     labels:
+    #         com.docker.stack.namespace: "monitoring"
+    #         com.docker.service.name: "elastalert"
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 1
+    #         update_config:
+    #             parallelism: 1
+    #             delay: 60s
+    #         restart_policy:
+    #             condition: on-failure
+    #             max_attempts: 5
+    #         labels:
+    #             com.docker.stack.namespace: "monitoring"
+    #             com.docker.service.name: "elastalert"  
+    #             traefik.enable: "true"
+    #             traefik.port: "3030"
+    #             traefik.frontend.rule: "Host:elastalert.metabrokr.us"
+    #             traefik.docker.network: "proxy"           
 
     grafana:
         image: grafana/grafana
@@ -169,7 +169,7 @@ services:
             - logging
             - proxy
         volumes:
-            - ../dockerdata/grafana:/var/lib/grafana
+            - grafana_data:/var/lib/grafana
         command: -e "GF_SERVER_ROOT_URL=http://grafana.local.com GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090 ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200"
         labels:
             com.docker.stack.namespace: "monitoring"
@@ -228,3 +228,8 @@ networks:
         external: true
     proxy:
         external: true
+volumes:
+    grafana_data:
+        external: true
+    prometheus_data:
+    prometheus_rules:

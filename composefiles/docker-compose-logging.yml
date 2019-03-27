@@ -3,15 +3,21 @@ version: "3"
 services:
     
     elasticsearch:
-        image: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.6.1
+        environment:
+            ES_JAVA_OPTS: '-Xms512m -Xmx512m'
         networks:
             - logging
         volumes:
-            - ../dockerdata/elasticsearch/data:/usr/share/elasticsearch/data
+            - elk_data:/usr/share/elasticsearch/data
         labels:
             com.docker.stack.namespace: "logging"
             com.docker.service.name: "elasticsearch"
         deploy:
+            placement:
+                constraints:
+                # Hostname of the manager node!
+                - node.hostname == m1
             mode: replicated
             update_config:
                 parallelism: 1
@@ -32,7 +38,7 @@ services:
             - ELASTICSEARCH_PORT=9200
             - INTERVAL_IN_HOURS=12
         volumes:
-            - ../dockerdata/curator:/var/curator
+            - curator_data:/var/curator
         labels:
             com.docker.stack.namespace: "logging"
             com.docker.service.name: "curator"
@@ -49,7 +55,7 @@ services:
                 com.docker.service.name: "curator"                   
 
     logstash:
-        image: logstash:latest
+        image: docker.elastic.co/logstash/logstash:6.7.0
         depends_on:
             - elasticsearch
         ports:
@@ -62,6 +68,7 @@ services:
             com.docker.stack.namespace: "logging"
             com.docker.service.name: "logstash"
         deploy:
+            
             mode: replicated
             update_config:
                 parallelism: 1
@@ -74,7 +81,7 @@ services:
                 com.docker.service.name: "logstash"
 
     kibana:
-        image: kibana
+        image: docker.elastic.co/kibana/kibana-oss:6.6.1
         depends_on:
             - elasticsearch                 
         networks:
@@ -106,4 +113,8 @@ networks:
         external: true
     proxy:
         external: true
-
+volumes:
+ elk_data:
+  external: true
+ curator_data:
+  external: true
