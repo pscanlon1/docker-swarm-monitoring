@@ -165,7 +165,10 @@ services:
             - grafana_data:/var/lib/grafana
         networks:
             - proxy
-            - monitor
+            - monitoring
+            - logging
+        ports:
+            - "3000:3000"
         command: -e "GF_SERVER_ROOT_URL=https://grafana.metabrokr.us GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090 ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200"
         deploy:
             placement:
