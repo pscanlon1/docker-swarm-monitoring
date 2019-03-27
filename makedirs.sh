@@ -33,14 +33,14 @@ sudo touch ../dockerdata/curator/action.yml
 cd ..
 
 # Move it to var on the server...
-sudo mv dockerdata/ /var
+#sudo mv dockerdata/ /var
 
 # create your networks
-docker network create -d overlay monitoring
-docker network create -d overlay logging
+# docker network create -d overlay monitoring
+# docker network create -d overlay logging
 
 
 
-docker stack deploy -c composefiles/docker-compose-logging.yml logging
+# docker stack deploy -c composefiles/docker-compose-logging.yml logging
 
-docker stack deploy -c composefiles/docker-compose-monitoring.yml monitoring
+# docker stack deploy -c composefiles/docker-compose-monitoring.yml monitoring

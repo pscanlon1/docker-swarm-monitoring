@@ -7,7 +7,7 @@ services:
         networks:
             - logging
         volumes:
-            - /var/dockerdata/elasticsearch/data:/usr/share/elasticsearch/data
+            - ../elasticsearch/data:/usr/share/elasticsearch/data
         labels:
             com.docker.stack.namespace: "logging"
             com.docker.service.name: "elasticsearch"
@@ -32,7 +32,7 @@ services:
             - ELASTICSEARCH_PORT=9200
             - INTERVAL_IN_HOURS=12
         volumes:
-            - /var/dockerdata/curator:/var/curator
+            - ../curator:/var/curator
         labels:
             com.docker.stack.namespace: "logging"
             com.docker.service.name: "curator"

@@ -9,9 +9,9 @@ services:
         networks:
             - monitoring
         volumes:
-            - /var/dockerdata/prometheus/data:/prometheus
-            - /var/dockerdata/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-            - /var/dockerdata/prometheus/rules:/etc/prometheus-rules
+            - ../prometheus/data:/prometheus
+            - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ../prometheus/rules:/etc/prometheus-rules
         command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles"
         labels:
             com.docker.stack.namespace: "monitoring"
@@ -99,8 +99,8 @@ services:
         networks:
             - monitoring
         volumes:
-            - /var/dockerdata/alertmanager/alertmanagerconfig.yml:/etc/alertmanager/alertmanagerconfig.yml
-            - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
+            - ../alertmanager/alertmanagerconfig.yml:/etc/alertmanager/alertmanagerconfig.yml
+            - ../alertmanager/data:/etc/alertmanager/data
         command: [--config.file=/etc/alertmanager/alertmanagerconfig.yml,--storage.path=/etc/alertmanager/data]
         labels:
             com.docker.stack.namespace: "monitoring"
@@ -137,9 +137,9 @@ services:
             - ELASTICSEARCH_HOST=elasticsearch
             - ELASTALERT_SUPERVISOR_CONF=/opt/config/elastalert_supervisord.conf
         volumes:
-            - /var/dockerdata/elastalert/config:/opt/config
-            - /var/dockerdata/elastalert/rules:/opt/rules
-            - /var/dockerdata/elastalert/logs:/opt/logs
+            - ../elastalert/config:/opt/config
+            - ../elastalert/rules:/opt/rules
+            - ../elastalert/logs:/opt/logs
         labels:
             com.docker.stack.namespace: "monitoring"
             com.docker.service.name: "elastalert"
@@ -169,7 +169,7 @@ services:
             - logging
             - proxy
         volumes:
-            - /var/dockerdata/grafana:/var/lib/grafana
+            - ../grafana:/var/lib/grafana
         command: -e "GF_SERVER_ROOT_URL=http://grafana.local.com GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090 ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200"
         labels:
             com.docker.stack.namespace: "monitoring"
