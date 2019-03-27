@@ -4,8 +4,8 @@ services:
     
     prometheus:
         image: prom/prometheus:v2.1.0
-        ports:
-            - "9090:9090"
+        # ports:
+        #     - "9090:9090"
         networks:
             - monitoring
         volumes:
@@ -28,11 +28,15 @@ services:
             labels:
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "prometheus"
+                traefik.enable: "true"
+                traefik.port: "9090"
+                traefik.frontend.rule: "Host:prometheus.metabrokr.us"
+                traefik.docker.network: "proxy" 
 
     cadvisor:
         image: google/cadvisor:latest
-        ports:
-            - "8081:8080"
+        # ports:
+        #     - "8081:8080"
         networks:
             - monitoring
         volumes:
@@ -57,8 +61,8 @@ services:
 
     node-exporter:
         image: basi/node-exporter:v1.15.0
-        ports:
-            - "9100:9100"
+        # ports:
+        #     - "9100:9100"
         networks:
             - monitoring
         environment:
@@ -90,8 +94,8 @@ services:
 
     alertmanager:
         image: prom/alertmanager
-        ports:
-            - "9093:9093"
+        # ports:
+        #     - "9093:9093"
         networks:
             - monitoring
         volumes:
@@ -113,11 +117,15 @@ services:
             labels:
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "alertmanager"
+                traefik.enable: "true"
+                traefik.port: "9093"
+                traefik.frontend.rule: "Host:alertmanager.metabrokr.us"
+                traefik.docker.network: "proxy" 
     
     elastalert:
         image: ivankrizsan/elastalert:0.1.8
-        ports:
-            - "3030:3030"
+        # ports:
+        #     - "3030:3030"
         networks:
             - logging
         environment:
@@ -146,15 +154,20 @@ services:
                 max_attempts: 5
             labels:
                 com.docker.stack.namespace: "monitoring"
-                com.docker.service.name: "elastalert"            
+                com.docker.service.name: "elastalert"  
+                traefik.enable: "true"
+                traefik.port: "3030"
+                traefik.frontend.rule: "Host:elastalert.metabrokr.us"
+                traefik.docker.network: "proxy"           
 
     grafana:
         image: grafana/grafana
-        ports:
-            - "3000:3000"
+        # ports:
+        #     - "3000:3000"
         networks:
             - monitoring
             - logging
+            - proxy
         volumes:
             - /var/dockerdata/grafana:/var/lib/grafana
         command: -e "GF_SERVER_ROOT_URL=http://grafana.local.com GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090 ELASTICSEARCH_ENDPOINT=http://elasticsearch:9200"
@@ -173,41 +186,45 @@ services:
             labels:
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "grafana"
+                traefik.enable: "true"
+                traefik.port: "3000"
+                traefik.frontend.rule: "Host:grafana.metabrokr.us"
+                traefik.docker.network: "proxy" 
 
-    prom2teams:
-        image: robinong79/prom2teams:dev
-        ports:
-            - "8089:8089"        
-        ports:
-            - "8089:8089"
-        networks:
-            - monitoring
-        environment:
-            - PROM2TEAMS_HOST=0.0.0.0
-            - PROM2TEAMS_PORT=8089
-            - PROM2TEAMS_LOGLEVEL=INFO
-            - PROM2TEAMS_CONNECTOR=<YOUR MS TEAMS WEBHOOK>
-        labels:
-            com.docker.stack.namespace: "monitoring"
-            com.docker.service.name: "prom2teams"
-        deploy:
-            mode: replicated
-            replicas: 1
-            placement:
-                constraints: [node.platform.OS == linux]            
-            update_config:
-                parallelism: 1
-                delay: 60s
-            restart_policy:
-                condition: on-failure
-                max_attempts: 5
-            labels:
-                com.docker.stack.namespace: "monitoring"
-                com.docker.service.name: "prom2teams"
+    # prom2teams:
+    #     image: robinong79/prom2teams:dev
+    #     ports:
+    #         - "8089:8089"        
+    #     networks:
+    #         - monitoring
+    #     environment:
+    #         - PROM2TEAMS_HOST=0.0.0.0
+    #         - PROM2TEAMS_PORT=8089
+    #         - PROM2TEAMS_LOGLEVEL=INFO
+    #         - PROM2TEAMS_CONNECTOR=<YOUR MS TEAMS WEBHOOK>
+    #     labels:
+    #         com.docker.stack.namespace: "monitoring"
+    #         com.docker.service.name: "prom2teams"
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 1
+    #         placement:
+    #             constraints: [node.platform.OS == linux]            
+    #         update_config:
+    #             parallelism: 1
+    #             delay: 60s
+    #         restart_policy:
+    #             condition: on-failure
+    #             max_attempts: 5
+    #         labels:
+    #             com.docker.stack.namespace: "monitoring"
+    #             com.docker.service.name: "prom2teams"
 
 
 networks:
     logging:
         external: true
     monitoring:
+        external: true
+    proxy:
         external: true

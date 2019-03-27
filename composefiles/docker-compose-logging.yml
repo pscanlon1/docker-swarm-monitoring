@@ -76,11 +76,10 @@ services:
     kibana:
         image: kibana
         depends_on:
-            - elasticsearch        
-        ports:
-            - "5601:5601"          
+            - elasticsearch                 
         networks:
             - logging
+            - proxy
         environment:
             - ELASTICSEARCH_URL=http://elasticsearch:9200
         labels:
@@ -96,9 +95,15 @@ services:
                 max_attempts: 5
             labels:
                 com.docker.stack.namespace: "logging"
-                com.docker.service.name: "kibana"                
+                com.docker.service.name: "kibana"    
+                traefik.enable: "true"
+                traefik.port: "5601"
+                traefik.frontend.rule: "Host:logging.metabrokr.us"
+                traefik.docker.network: "proxy"             
 
 networks:
     logging:
+        external: true
+    proxy:
         external: true
 
